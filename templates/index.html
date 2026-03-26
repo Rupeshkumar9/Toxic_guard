@@ -1,0 +1,161 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="ToxiGuard — AI-powered behavioral drift detection and toxicity escalation prediction for online platforms.">
+    <title>ToxiGuard — Behavioral Drift & Toxicity Detection</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+
+<body>
+    <!-- Header -->
+    <header id="main-header">
+        <div class="header-left">
+            <div class="logo">
+                <span class="logo-icon">🛡️</span>
+                <h1>Toxi<span class="accent">Guard</span></h1>
+            </div>
+            <span class="tagline">Behavioral Drift & Toxicity Detection</span>
+        </div>
+        <div class="header-right">
+            <div style="display: flex; align-items: center;">
+                <select id="platform-select" class="action-btn" style="margin-right: 10px;">
+                    <!-- The drop -down will be updated dynamically through js  -->
+                </select>
+                <label for="csv-upload" class="action-btn"
+                    style="cursor: pointer; margin-right: 12px; display: inline-flex; align-items: center; gap: 6px;">
+                    📁 Upload Custom CSV
+                </label>
+                <input type="file" id="csv-upload" accept=".csv" style="display: none;">
+                <span id="upload-status"
+                    style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: 500; margin-right: 12px; display: none;">Uploading...</span>
+                <button class="action-btn" id="btn-refresh" title="Re-analyze all users">
+                    🔄 Re-Analyze
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Layout -->
+    <main id="app-main">
+        <!-- Top: Platform Stats -->
+        <section class="stats-bar" id="stats-bar">
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-info">
+                    <span class="stat-value" id="val-total-users">—</span>
+                    <span class="stat-label">Total Users</span>
+                </div>
+            </div>
+            <div class="stat-card stat-warning">
+                <div class="stat-icon">⚠️</div>
+                <div class="stat-info">
+                    <span class="stat-value" id="val-flagged">—</span>
+                    <span class="stat-label">Flagged Users</span>
+                </div>
+            </div>
+            <div class="stat-card stat-danger">
+                <div class="stat-icon">🔴</div>
+                <div class="stat-info">
+                    <span class="stat-value" id="val-escalating">—</span>
+                    <span class="stat-label">Escalating</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-info">
+                    <span class="stat-value" id="val-avg-toxicity">—</span>
+                    <span class="stat-label">Avg Toxicity</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💬</div>
+                <div class="stat-info">
+                    <span class="stat-value" id="val-total-comments">—</span>
+                    <span class="stat-label">Comments Analyzed</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bottom: 3-column layout -->
+        <div class="content-area">
+            <!-- Left: User List -->
+            <aside class="user-list-panel glass-panel" id="user-list-panel">
+                <div class="panel-header">
+                    <h2>Users</h2>
+                    <div class="filter-group">
+                        <select id="risk-filter">
+                            <option value="all">All Risks</option>
+                            <option value="escalating">🔴 Escalating</option>
+                            <option value="warning">🟠 Warning</option>
+                            <option value="drifting">🟡 Drifting</option>
+                            <option value="normal">🟢 Normal</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="user-list" id="user-list">
+                    <div class="loading-spinner">Loading users...</div>
+                </div>
+            </aside>
+
+            <!-- Center: Timeline -->
+            <section class="timeline-panel glass-panel" id="timeline-panel">
+                <div class="panel-header">
+                    <h2 id="timeline-title">Select a User</h2>
+                    <div class="user-meta" id="user-meta" style="display:none;">
+                        <span class="meta-badge" id="meta-archetype"></span>
+                        <span class="meta-badge" id="meta-risk"></span>
+                        <span class="meta-badge" id="meta-trend"></span>
+                    </div>
+                </div>
+                <div class="timeline-content" id="timeline-content">
+                    <div class="empty-state">
+                        <span class="empty-icon">📈</span>
+                        <p>Click on a user from the left panel to view their behavioral timeline</p>
+                    </div>
+                </div>
+                <!-- Sentiment Timeline Chart -->
+                <div class="chart-area" id="chart-area" style="display:none;">
+                    <canvas id="timeline-canvas"></canvas>
+                </div>
+                <!-- Comment List -->
+                <div class="comment-list" id="comment-list" style="display:none;">
+                    <h3>Recent Comments <span class="comment-count" id="comment-count"></span></h3>
+                    <div class="comments-scroll" id="comments-scroll"></div>
+                </div>
+            </section>
+
+            <!-- Right: Alerts & Charts -->
+            <aside class="alerts-panel glass-panel" id="alerts-panel">
+                <div class="panel-header">
+                    <h2>🚨 Alerts</h2>
+                </div>
+                <div class="alerts-list" id="alerts-list">
+                    <div class="loading-spinner">Loading alerts...</div>
+                </div>
+
+                <!-- Risk Distribution -->
+                <div class="distribution-chart">
+                    <h3>Risk Distribution</h3>
+                    <canvas id="distribution-canvas" height="180"></canvas>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <!-- Tooltip -->
+    <div class="tooltip" id="tooltip" style="display:none;"></div>
+
+    <script src="{% static 'js/timeline.js' %}"></script>
+    <script src="{% static 'js/charts.js' %}"></script>
+    <script src="{% static 'js/app.js' %}"></script>
+</body>
+
+</html>
