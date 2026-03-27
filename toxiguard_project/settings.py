@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure--2v3lfcm29h!1@p_0n9w3o_uog-nd_*xofbqqoz)q*7_7#ee&j
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']  # Allow Google App Engine proxy traffic
 
 
 # Application definition
@@ -117,3 +117,5 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'  # Required by Google Cloud for production
+
